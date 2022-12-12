@@ -1,0 +1,68 @@
+Всего 
+	36 конкретных эмоций
+	18 средних (?)
+	6 базовых
+
+Злость - anger
+	Гнев - rage
+		Враждебность - hostility
+		Ненависть - hatred
+	Зависть - envy
+		Возмущение - disturbance
+		Ревность - jealousy
+	Отвращение - disgust
+		Неуважение - disrespect
+		Восстание - insurrection
+Грусть - sadness
+	Страдание - suffering
+		Боль - pain
+		Обида - insult
+	Стыд - shame
+		Сожаление - regret
+		Вина - guilt
+	Отчаяние - despair
+		Горе - grief
+		Беспомощность - feebleness
+Удивление - astonishment
+	Ошеломление - stun
+		Шок - shock
+		Растерянность - confusion
+	Изумление - amazement
+		Пораженный - stricken
+		Благоговейный - reverent
+	Стимул - stimulus
+		Мотивированный - motivated
+		Взволнованный excited
+Радость - joy
+	Восторг - delight
+		Ликование - jubilation
+		Эйфория - euphoria
+	Увлеченность - passion
+		Восхищение - rapture
+		Очарование - charm
+	Гордость - pride
+		Триумф - triumph
+		Праздник - holiday
+	
+Любовь - love
+	Привлекательность - attractiveness
+		Симпатия - sympathy
+		Романтика - romance
+	Страсть - lust
+		Безрассудство - recklessness
+		Вожделение - concupiscent
+	Нежность - tenderness
+		Сострадание - compassion
+		Забота - care
+
+Страх - fear
+	Испуг - fright
+		Беззащитность - defencelessness
+		Напуганность - fearfulness
+	Нервозность - nervousness
+		Тревожность - anxiety
+		Обеспокоенность - concern
+	Ужас - horror
+		Боязнь - dread
+		Оцепенение - torpor
+	

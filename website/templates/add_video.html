@@ -1,15 +1,16 @@
 <html xmlns="http://www.w3.org/1999/html">
 <head>
     <title>Добавление видео</title>
+    <meta charset="utf-8">
 </head>
 <body>
 <form method="post" action="/video/add">
     <p>Добавление нового видео</p>
-    <p>название<br><input name="name"/></p>
-    <p>ссылка<br><input name="href"/></p>
-    <p>описание<br><input name="description"/></p>
-    <p>длина<br><input name="length"/></p>
-    <p>дата выхода<br><input name="date"/></p>
+    <p>ссылка<br><input required name="url"/></p>
+    <p>длина<br><input required name="length"/></p>
+    <p>дата выхода<br><input placeholder="2020-09-22" required name="release_date"/></p>
+
+    <div class="container">{% block content %} {% endblock %}</div>
 
     <button type="submit">Добавить</button>
 </form>

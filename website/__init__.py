@@ -4,7 +4,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-DB_NAME = "database.db"
+DB_NAME = "database.sqlite"
 
 
 def create_app():
@@ -13,13 +13,13 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     db.init_app(app)
 
-    from .views import views
-    from .videos import videos
+    from website.controller.videos_controller import videos
+    from website.controller.auth_controller import auth
 
-    app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(videos, url_prefix='/video/')
+    app.register_blueprint(auth, url_prefix='/')
 
-    from .models import Video, Category
+    from website.domain.models import Video
 
     create_database(app)
 
