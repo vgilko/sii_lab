@@ -13,6 +13,9 @@ class Video(db.Model):
     release_date = db.Column(db.Date)
     blogger = db.Column(db.String(150))
 
+    likes = relationship('Likes')
+    dislikes = relationship('Dislikes')
+
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -35,6 +38,7 @@ class User(db.Model, UserMixin):
     def __init__(self, login: str, password: str):
         self.login = login
         self.password = password
+
 
 class Emotion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -62,8 +66,17 @@ class Likes(db.Model):
     user = db.Column(db.Integer, db.ForeignKey('user.id'))
     video = db.Column(db.Integer, db.ForeignKey('video.id'))
 
+    def __init__(self, video, user):
+        self.video = video
+        self.user = user
+
+
 class Dislikes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.Integer, db.ForeignKey('user.id'))
     video = db.Column(db.Integer, db.ForeignKey('video.id'))
+
+    def __init__(self, video, user):
+        self.video = video
+        self.user = user
 

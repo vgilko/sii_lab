@@ -1,6 +1,7 @@
 from os import path
 
 from flask import Flask
+from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -16,12 +17,20 @@ def create_app():
     from website.controller.videos_controller import videos
     from website.controller.auth_controller import auth
 
-    app.register_blueprint(videos, url_prefix='/video/')
+    app.register_blueprint(videos, url_prefix='/video')
     app.register_blueprint(auth, url_prefix='/')
 
-    from website.domain.models import Video
+    from website.domain.models import Video, User
 
     create_database(app)
+
+    login_manager = LoginManager()
+    login_manager.login_view = 'auth.login'
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
     return app
 

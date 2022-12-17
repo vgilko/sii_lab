@@ -6,9 +6,9 @@
 <body>
 <form method="post" action="/video/add">
     <p>Добавление нового видео</p>
-    <p>ссылка<br><input required name="url"/></p>
-    <p>длина<br><input required name="length"/></p>
-    <p>дата выхода<br><input placeholder="2020-09-22" required name="release_date"/></p>
+    <br><label>Ссылка<br><input required name="url"/></label>
+    <br><label>Длина<br><input required name="length"/></label>
+    <br><label>Дата выхода<br><input placeholder="2020-09-22" required name="release_date"/></label>
 
     <div class="container">{% block content %} {% endblock %}</div>
 

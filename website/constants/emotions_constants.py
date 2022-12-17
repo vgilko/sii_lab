@@ -1,4 +1,4 @@
-grand_emotions = ('anger', 'sadness', 'astonishment', 'joy', 'love', 'fear')
+grand_emotions = tuple(sorted(['anger', 'sadness', 'astonishment', 'joy', 'love', 'fear']))
 
 parent_emotions = {
     'anger': {'rage', 'envy', 'disgust'},
@@ -41,3 +41,14 @@ for key in child_emotions:
         child_to_parent_emotions[emotion] = key
 
 sorted_child_emotions = sorted(child_to_parent_emotions.keys())
+
+
+def get_child_emotion_by_index(vector_emotion_index: int) -> str:
+    return sorted_child_emotions[vector_emotion_index]
+
+
+def get_grand_emotion_by_child(emotion_name: str) -> str:
+    parent_emotion = child_to_parent_emotions[emotion_name]
+    grand_emotion = parent_to_grand_emotions[parent_emotion]
+
+    return grand_emotion

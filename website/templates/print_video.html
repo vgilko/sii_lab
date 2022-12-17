@@ -1,0 +1,41 @@
+{% extends "base.html" %} {% block title %}Login{% endblock %} {% block content
+%}
+<div>
+    {% for video in videos %}
+    <table border=1 width="100%">
+
+        <tr>
+            <td><a href="{{video['url']}}">{{video['title']}}</a></td>
+            <td></td>
+            <td width=20%><b>{{video['blogger']}}</b></td>
+
+        </tr>
+        <tr>
+            <td>{{video['description']}}</td>
+
+            <td>{{video['release_date']}}</td>
+
+            <td><a href="/video/like/{{video['id']}}">Похожие</a></td>
+
+        </tr>
+
+        <tr>
+            <td>
+                <b>{{(video['child_emotions'][:5] | string)[1:-1].replace("'", '')}}</b>
+            </td>
+            <td width="100px">{{((video['length'] | int / 60) | string).split('.')[0]}} минут</td>
+            <td>
+                <form method="post" action="/video/reaction">
+                    <button type="submit" name="reaction" value="like">{{video['likes']}} &#128077;</button>
+                    <button type="submit" name="reaction" value="dislike">{{video['dislikes']}} &#128078;</button>
+                    <input hidden name="video" value="{{video['id']}}"/>
+                </form>
+            </td>
+        </tr>
+    </table>
+    <br>
+
+    {% endfor %}
+
+</div>
+{% endblock %}
