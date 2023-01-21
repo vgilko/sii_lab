@@ -23,6 +23,10 @@ def jaccard_description(description1: str, description2):
     return jaccard(list1, list2)
 
 
+def is_emotions_similar(emotions1, emotions2):
+    return 1 - cosine(emotions1, emotions2) < 0.4
+
+
 def generalize_measure(video_1: dict, video_2: dict) -> float:
     jaccard_tags_value = jaccard(video_1['tags'], video_2['tags'])
     jaccard_description_value = jaccard_description(video_1['description'], video_2['description'])

@@ -9,6 +9,15 @@ parent_emotions = {
     'fear': {'fright', 'nervousness', 'horror'}
 }
 
+base_emotion_to_emoji = {
+    'anger': '😠',
+    'sadness': '😢',
+    'astonishment': '😲',
+    'joy': '😜',
+    'love': '😍',
+    'fear': '😱'
+}
+
 child_emotions = {
     'rage': {'hostility', 'hatred'},
     'envy': {'disturbance', 'jealousy'},
@@ -30,6 +39,45 @@ child_emotions = {
     'horror': {'dread', 'torpor'}
 }
 
+translate = {
+    'hostility': 'Враждебность',
+    'hatred': 'Ненависть',
+    'disturbance': 'Возмущение',
+    'jealousy': 'Ревность',
+    'disrespect': 'Неуважение',
+    'insurrection': 'Восстание',
+    'pain': 'Боль',
+    'insult': 'Обида',
+    'regret': 'Сожаление',
+    'guilt': 'Вина',
+    'grief': 'Горе',
+    'feebleness': 'Беспомощность',
+    'shock': 'Шок',
+    'confusion': 'Растерянность',
+    'stricken': 'Пораженный',
+    'reverent': 'Благоговейный',
+    'motivated': 'Мотивированный',
+    'excited': 'Взволнованный',
+    'jubilation': 'Ликование',
+    'euphoria': 'Эйфория',
+    'rapture': 'Восхищение',
+    'charm': 'Очарование',
+    'triumph': 'Триумф',
+    'holiday': 'Праздник',
+    'sympathy': 'Симпатия',
+    'romance': 'Романтика',
+    'recklessness': 'Безрассудство',
+    'concupiscent': 'Вожделение',
+    'compassion': 'Сострадание',
+    'care': 'Забота',
+    'defencelessness': 'Беззащитность',
+    'fearfulness': 'Напуганность',
+    'anxiety': 'Тревожность',
+    'concern': 'Обеспокоенность',
+    'dread': 'Боязнь',
+    'torpor': 'Оцепенение'
+}
+
 parent_to_grand_emotions = {}
 for key in parent_emotions:
     for emotion in parent_emotions[key]:
@@ -41,6 +89,22 @@ for key in child_emotions:
         child_to_parent_emotions[emotion] = key
 
 sorted_child_emotions = sorted(child_to_parent_emotions.keys())
+
+parent_to_child = {}
+for parent_emotion in parent_emotions:
+    for child in parent_emotions[parent_emotion]:
+        adding_emotions = list(child_emotions[child])
+
+        if parent_to_child.get(parent_emotion) is None:
+            parent_to_child[parent_emotion] = list(adding_emotions)
+        else:
+            parent_to_child[parent_emotion] += adding_emotions
+
+emotions = {
+    'emoji': base_emotion_to_emoji,
+    'parent': parent_to_child,
+    'translate': translate
+}
 
 
 def get_child_emotion_by_index(vector_emotion_index: int) -> str:

@@ -35,7 +35,7 @@ def measures():
 
     fig.delaxes(ax[1, 1])
 
-    plt.show()
+    plt.savefig("./website/static/images/measures.png")
 
 
 def change_plot_pos_y(plot, move_coeff: float):

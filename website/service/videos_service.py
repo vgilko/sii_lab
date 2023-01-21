@@ -1,16 +1,23 @@
 import datetime
+import json
 import logging
 
 import requests
+import sqlalchemy
 from bs4 import BeautifulSoup
 from requests import Response
+from werkzeug.datastructures import ImmutableMultiDict
 
 from website import db
-from website.domain.models import Video, Tag, Likes, Dislikes
+from website.domain.Filter import Filter
+from website.domain.models import Video, Tag, Likes, Dislikes, SearchHistory, User
 from website.dto.create_video_dto import CreateVideoDto
+from website.dto.emotion_dto import EmotionDto
 from website.dto.video_dto import VideoDto
-from website.service.emotion_service import create_emotion, get_emotions_vector, extract_child_emotions
-from website.service.proximity_measures import generalize_measure
+from website.service.emotion_service import create_emotion, get_emotions_vector, extract_child_emotions, \
+    vectorize_emotions, get_russian_names
+from website.service.proximity_measures import generalize_measure, is_emotions_similar
+from website.util.mapping import map_to_emotions_dto
 from website.util.text_util import normalize_sentence
 
 
@@ -43,7 +50,11 @@ def find_similarities(user_id: int):
     likes, unwatched_videos = get_likes_and_unwatched_videos(user_id)
     liked_videos = get_video_by_ids(likes)
 
-    return find_best_matches_for_unwatched(liked_videos, unwatched_videos)
+    if len(liked_videos) == 0:
+        videos = read_all_videos()
+        return False, sorted(videos, key=lambda x: x['likes'], reverse=True)
+    else:
+        return True, find_best_matches_for_unwatched(liked_videos, unwatched_videos)
 
 
 def find_like_watched(user_id: int):
@@ -59,7 +70,7 @@ def find_like_watched(user_id: int):
                 match_value = generalize_measure(liked_video, video)
                 measures.append((match_value, video_idx, video))
 
-    sorted_by_measure = sorted(measures, key=lambda x: x[0])
+    sorted_by_measure = sorted(measures, key=lambda x: x[0], reverse=True)
 
     returning_videos_ids = []
     videos_result = []
@@ -70,6 +81,204 @@ def find_like_watched(user_id: int):
             videos_result.append(row[2])
 
     return videos_result
+
+
+def get_filtered(args: ImmutableMultiDict, user: User = None) -> (str, [dict]):
+    if user is not None:
+        save_search(user.id, args)
+
+    message = ''
+    emotion_dto = map_to_emotions_dto(args)
+    filters = build_filters_list(args)
+
+    print(f"Built filters {filters.non_strict_filters, filters.strict_filters}")
+
+    videos = []
+
+    filtered_videos = get_by_filter(filters)
+    if len(filtered_videos) == 0:
+        print(f'There is no videos for parameters {args}. Expanding border for request')
+
+        filters = build_filters_list(args, expand_borders=True)
+        filtered_videos = get_by_filter(filters)
+
+        if len(filtered_videos) != 0:
+            print(f'There is no videos for {args} after borders expanding too')
+            message = 'Строгие критерии поиска, я немного сдвинул границы, чтобы порекомендовать вам видео:'
+            videos = filtered_videos
+
+        if len(filtered_videos) == 0:
+            message = 'Увы, по вашему запросу ничего не нашлось. Рекомедую посмотреть:'
+            videos = read_all_videos()
+    else:
+        print(f"Finding videos similar to {filtered_videos}")
+        videos = extract_similar(filtered_videos, emotion_dto)
+
+        if len(videos) != 0 and message == '':
+            message = 'По вашему запросу найдены видео:'
+            videos = filtered_videos + videos
+        else:
+            print(f'There is no similar videos for videos {filtered_videos}')
+            videos = filtered_videos
+
+    return message, videos, get_selected_emotions(emotion_dto)
+
+
+def save_search(user_id: int, args: ImmutableMultiDict):
+    string_args = json.dumps(args)
+    history = SearchHistory(user_id, string_args)
+
+    db.session.add(history)
+    db.session.flush()
+
+
+def get_selected_emotions(emotion_dto: EmotionDto) -> [str]:
+    emotions = []
+    emotions_dict = vars(emotion_dto)
+    for emotion in emotions_dict:
+        emotions += emotions_dict.get(emotion)
+
+    return emotions
+
+
+def get_by_filter(filters: Filter):
+    comparator = build_comparator_for_filtering(filters)
+
+    videos = db.session.query(Video).filter(comparator).all()
+
+    return [get_data_for_video(video) for video in videos]
+
+
+def build_comparator_for_filtering(filters):
+    comparator = None
+    if len(filters.non_strict_filters) != 0:
+        comparator = sqlalchemy.or_(*filters.non_strict_filters)
+
+    if len(filters.strict_filters) != 0:
+        comparator_strict = sqlalchemy.and_(*filters.strict_filters)
+
+        if comparator is None:
+            comparator = comparator_strict
+        else:
+            comparator = comparator & comparator_strict
+
+    return comparator
+
+
+def extract_similar(videos: [dict], emotion_dto: EmotionDto) -> [dict]:
+    # TODO: приведение к видео, сравнение по generalize мере
+    #       сравнение векторов базовых эмоций:
+    #           * Сложение всех векторов найденных видосов и их с вектором эмоций из поиска
+
+    output = []
+    for video in videos:
+        if is_emotions_similar(video['emotions'], vectorize_emotions(emotion_dto)):
+            output.append(video)
+
+    return output
+
+
+def build_filters_list(args, expand_borders=False) -> Filter:
+    non_strict_filters = []
+
+    blogger = args.get('blogger')
+    title = args.get('title')
+    time_lower = args.get('time_lower_border')
+    time_upper = args.get('time_upper_border')
+    start_date = args.get('start_date')
+    end_date = args.get('end_date')
+
+    strict_filters = build_date_filters(start_date, end_date, expand_borders)
+    strict_filters += get_time_filters(time_lower, time_upper, expand_borders)
+
+    if blogger != '':
+        blogger = f'%{blogger}%'
+        non_strict_filters.append(Video.blogger.ilike(blogger))
+
+    if title != '':
+        title = f'%{title}%'
+        non_strict_filters.append(Video.title.ilike(title))
+
+    print(f'Filters: strict: {strict_filters}, non strict: {non_strict_filters}')
+
+    return Filter(non_strict_filters, strict_filters)
+
+
+def build_date_filters(start_date, end_date, expand_border=False):
+    start_date_obj = None
+    end_date_obj = None
+
+    if start_date == '' and end_date == '':
+        return []
+
+    if start_date != '':
+        start_date_obj = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+    else:
+        start_date_obj = datetime.datetime.now()
+
+    if end_date != '':
+        end_date_obj = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+    else:
+        end_date_obj = datetime.datetime.now()
+
+    if start_date_obj > end_date_obj:
+        start_date, end_date = end_date, start_date
+
+    if expand_border:
+        days_delta = get_days_delta(start_date_obj, end_date_obj)
+
+        if days_delta < 1:
+            days_delta = 1
+        else:
+            days_delta *= 0.3
+
+        result_date_delta = datetime.timedelta(days=days_delta)
+
+        if start_date != '':
+            start_date_obj -= result_date_delta
+        if end_date != '':
+            end_date_obj += result_date_delta
+
+    filters = []
+    if start_date != '':
+        filters.append(Video.release_date >= start_date_obj)
+    if end_date != '':
+        filters.append(Video.release_date <= end_date_obj)
+
+    print(f"Dates for building filters {start_date_obj} - {end_date_obj}")
+
+    return filters
+
+
+def get_days_delta(start_date_obj, end_date_obj):
+    time_delta = end_date_obj - start_date_obj
+    days_delta = time_delta.days
+    return abs(days_delta)
+
+
+def get_time_filters(time_lower, time_upper, expand_border=False):
+    if time_lower == '' or time_upper == '':
+        return []
+
+    time_lower = int(time_lower)
+    time_upper = int(time_upper)
+    filters = []
+
+    if time_lower > time_upper:
+        time_lower, time_upper = time_upper, time_lower
+
+    time_delta = (time_upper - time_lower) * 0.1
+
+    if expand_border:
+        time_lower -= time_delta
+        time_upper += time_delta
+
+    if time_lower != '':
+        filters.append(Video.length >= int(time_lower) * 60)
+    if time_upper != '':
+        filters.append(Video.length <= int(time_upper) * 60)
+
+    return filters
 
 
 def find_best_matches_for_unwatched(liked_videos, unwatched_videos):
@@ -192,6 +401,26 @@ def read_all_videos():
     return result
 
 
+def likes(user_id: int):
+    videos = get_video_by_ids(get_liked_videos(user_id))
+    return videos
+
+
+def get_liked_videos(user_id):
+    liked_videos = Likes.query.filter_by(user=user_id).all()
+    return [row.video for row in liked_videos]
+
+
+def get_disliked_videos(user_id):
+    disliked_videos = Dislikes.query.filter_by(user=user_id).all()
+    return [row.video for row in disliked_videos]
+
+
+def dislikes(user_id: int):
+    videos = get_video_by_ids(get_disliked_videos(user_id))
+    return videos
+
+
 def get_data_for_video(video: Video):
     unpacked_video = vars(video)
 
@@ -200,7 +429,7 @@ def get_data_for_video(video: Video):
     unpacked_video['tags'] = get_video_tags(video)
     unpacked_video['emotions'] = get_emotions_vector(video.id)
     unpacked_video['child_emotions'] = extract_child_emotions(unpacked_video['emotions'])
-    unpacked_video['child_emotions_ru'] = extract_child_emotions(unpacked_video['emotions'])
+    unpacked_video['child_emotions_ru'] = get_russian_names(unpacked_video['child_emotions'])
 
     return unpacked_video
 
@@ -233,7 +462,6 @@ def build_video(response: Response, video_dto: VideoDto):
 
     video = Video(**video_dto.__dict__)
     video.title = title
-    # video.description = make_description_normal(description)
     video.blogger = blogger
 
     return video, normalize_sentence(keywords)

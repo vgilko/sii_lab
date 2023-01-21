@@ -4,14 +4,15 @@ import numpy as np
 
 from website import db
 from website.constants.emotions_constants import sorted_child_emotions, get_grand_emotion_by_child, \
-    get_child_emotion_by_index, grand_emotions
+    get_child_emotion_by_index, grand_emotions, translate
 from website.domain.models import Emotion, EmotionValue
 from website.dto.emotion_dto import EmotionDto
 
 
 def create_emotion(video_id: int, emotion_dto: EmotionDto):
     add_emotions(emotion_dto, video_id)
-    vectorize_emotions(emotion_dto, video_id)
+    emotions_vector = vectorize_emotions(emotion_dto)
+    db.session.add(EmotionValue(str(emotions_vector), video_id))
 
     db.session.flush()
 
@@ -29,7 +30,7 @@ def add_emotions(emotion_dto, video_id: int):
             db.session.add(Emotion(video_id, emotion))
 
 
-def vectorize_emotions(emotion_dto: EmotionDto, video_id: int):
+def vectorize_emotions(emotion_dto: EmotionDto):
     emotions = []
     emotion_dto_dict = vars(emotion_dto)
     vector = []
@@ -44,7 +45,7 @@ def vectorize_emotions(emotion_dto: EmotionDto, video_id: int):
             value = 1
         vector.append(value)
 
-    db.session.add(EmotionValue(str(vector), video_id))
+    return vector
 
 
 def get_vector_of_base_emotions_by(video_id: int):
@@ -79,3 +80,7 @@ def extract_child_emotions(emotions_vector: np.array):
             result.append(sorted_child_emotions[idx])
 
     return list(set(result))
+
+
+def get_russian_names(emotions_names: [str]) -> [str]:
+    return [translate[emotion] for emotion in emotions_names]
