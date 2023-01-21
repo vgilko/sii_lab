@@ -1,14 +1,17 @@
+import json
+import json
 import os
 
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import current_user, login_required
 
-from website.constants.emotions_constants import emotions
+from website.constants.emotions_constants import emotions, translate
+from website.domain.models import SearchHistory
 from website.dto.create_video_dto import CreateVideoDto
 from website.service.measure_service import measures
 from website.service.videos_service import add_video, read_all_videos, add_reaction, get_videos_like, find_similarities, \
     find_like_watched, likes, dislikes, get_video, get_filtered
-from website.util.mapping import map_to_video_dto, map_to_emotions_dto
+from website.util.mapping import map_to_video_dto, map_to_emotions_dto, get_selected_emotions
 
 videos = Blueprint('videos', __name__)
 
@@ -78,6 +81,42 @@ def get_like_watched():
         header = 'Я подобрал вам видео на основе ваших любимых'
 
     return render_template('print_video.html', videos=videos, header=header)
+
+
+@videos.route('/history')
+@login_required
+def get_history():
+    find_all = SearchHistory.query.filter_by(user=current_user.id).order_by(SearchHistory.id.desc()).all()
+
+    history = []
+    for result in find_all:
+        loaded_data = json.loads(result.search)
+        loaded_data['id'] = result.id
+
+
+
+        history.append(loaded_data)
+
+        print(history)
+
+    return render_template('history.html', history=history)
+
+
+@videos.route('/from-history', methods=['GET'])
+@login_required
+def from_history():
+    history_id = request.args.get('history')
+    search = SearchHistory.query.filter_by(user=current_user.id, id=history_id).order_by(SearchHistory.id).first()
+
+    args = json.loads(search.search)
+    message, videos, selected_emotions = get_filtered(args, current_user)
+
+    return render_template('filter_videos.html',
+                           videos=videos,
+                           header=message,
+                           filters=args,
+                           selected_emotions=selected_emotions,
+                           emotions=emotions)
 
 
 @videos.route('/filter', methods=['GET', 'POST'])

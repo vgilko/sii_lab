@@ -9,6 +9,7 @@ from requests import Response
 from werkzeug.datastructures import ImmutableMultiDict
 
 from website import db
+from website.constants.emotions_constants import translate
 from website.domain.Filter import Filter
 from website.domain.models import Video, Tag, Likes, Dislikes, SearchHistory, User
 from website.dto.create_video_dto import CreateVideoDto
@@ -17,7 +18,7 @@ from website.dto.video_dto import VideoDto
 from website.service.emotion_service import create_emotion, get_emotions_vector, extract_child_emotions, \
     vectorize_emotions, get_russian_names
 from website.service.proximity_measures import generalize_measure, is_emotions_similar
-from website.util.mapping import map_to_emotions_dto
+from website.util.mapping import map_to_emotions_dto, get_selected_emotions
 from website.util.text_util import normalize_sentence
 
 
@@ -85,6 +86,7 @@ def find_like_watched(user_id: int):
 
 def get_filtered(args: ImmutableMultiDict, user: User = None) -> (str, [dict]):
     if user is not None:
+        print("saving search")
         save_search(user.id, args)
 
     message = ''
@@ -125,20 +127,25 @@ def get_filtered(args: ImmutableMultiDict, user: User = None) -> (str, [dict]):
 
 
 def save_search(user_id: int, args: ImmutableMultiDict):
-    string_args = json.dumps(args)
+    valid_fields = ['title', 'blogger', 'time_lower_border', 'time_upper_border', 'start_date', 'end_date']
+    emotions_dto = map_to_emotions_dto(args)
+    emotions = get_selected_emotions(emotions_dto)
+    translated_emotions = []
+    for emotion in emotions:
+        translated_emotions.append(translate[emotion])
+
+    args_dict = {}
+    for key in args:
+        if key in valid_fields:
+            args_dict[key] = args[key]
+
+    args_dict['emotions'] = translated_emotions
+    string_args = json.dumps(args_dict)
+
     history = SearchHistory(user_id, string_args)
 
     db.session.add(history)
-    db.session.flush()
-
-
-def get_selected_emotions(emotion_dto: EmotionDto) -> [str]:
-    emotions = []
-    emotions_dict = vars(emotion_dto)
-    for emotion in emotions_dict:
-        emotions += emotions_dict.get(emotion)
-
-    return emotions
+    db.session.commit()
 
 
 def get_by_filter(filters: Filter):

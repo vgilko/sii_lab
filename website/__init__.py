@@ -22,7 +22,7 @@ def create_app():
     app.register_blueprint(videos, url_prefix='/video')
     app.register_blueprint(auth, url_prefix='/')
 
-    from website.domain.models import Video, User
+    from website.domain.models import Video, User, SearchHistory
 
     create_database(app)
 
@@ -47,7 +47,7 @@ def configure_logging(app: Flask):
 
 
 def create_database(app):
-    if not path.exists('website/' + DB_NAME):
-        with app.app_context():
-            db.create_all()
-            db.session.commit()
+    # if not path.exists('website/' + DB_NAME):
+    with app.app_context():
+        db.create_all()
+        db.session.commit()

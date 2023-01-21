@@ -23,3 +23,12 @@ def map_to_emotions_dto(request_data: ImmutableMultiDict) -> EmotionDto:
             data[field] = request_data.getlist(field)
 
     return EmotionDto(**data)
+
+
+def get_selected_emotions(emotion_dto: EmotionDto) -> [str]:
+    emotions = []
+    emotions_dict = vars(emotion_dto)
+    for emotion in emotions_dict:
+        emotions += emotions_dict.get(emotion)
+
+    return emotions

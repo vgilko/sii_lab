@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div align="center">
+    <h1>История поиска</h1>
+    {% for search in history %}
+
+
+    <table style="padding-bottom: 3%">
+        <tr>
+            <th width="50%"></th>
+            <th width="50%"></th>
+        </tr>
+        <tr>
+            <td>Название</td>
+            <td>{{ search['video_title'] }}</td>
+        </tr>
+        <tr>
+            <td>Блогер</td>
+            <td>{{ search['blogger'] }}</td>
+        </tr>
+        <tr>
+            <td>Длина</td>
+            <td>{{ search['time_lower_border'] }} - {{ search['time_upper_border'] }}</td>
+        </tr>
+        <tr>
+            <td>Дата выхода</td>
+            <td>{{ search['start_date'] }} - {{ search['end_date'] }}</td>
+        </tr>
+        <tr>
+            <td>Эмоции</td>
+            <td>{{ search['emotions'] }}</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td align="right">
+                <form action="/video/from-history" method="get">
+                    <input type="text" hidden name="history" value="{{ search['id'] }}">
+
+                    <button type="submit">Искать</button>
+                </form>
+
+            </td>
+
+        </tr>
+
+    </table>
+
+
+    {% endfor %}
+</div>
+{% endblock %}
