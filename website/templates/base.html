@@ -15,15 +15,27 @@
             crossorigin="anonymous"
     />
 
+    <link rel="stylesheet" href="/static/css/styles.css"/>
+
     <title>{% block title %}Home{% endblock %}</title>
 </head>
 <body>
-<div style="margin-left: 20%; margin-right: 20%; padding: 16px">
-    <table border="1" width="100%">
+<div class="my_header">
+    <table>
         <tr align="center">
-            <td><a href="/video/all">Все видео</a></td>
-            <td><a href="/video/like/watched">Похожие на понравившиеся</a></td>
-            <td><a href="/video/similarities">Похожие на понравившиеся, без не понравившихся</a></td>
+            <th><a href="/video/all">Все видео</a></th>
+            {% if not current_user.is_anonymous %}
+            <th><a href="/video/filter">Поиск</a></th>
+            <th><a href="/video/like/watched">Похожие на понравившиеся</a></th>
+            <th><a href="/video/similarities">Похожие на понравившиеся, без не понравившихся</a></th>
+            <th><a href="/video/likes">Любимые</a></th>
+            <th><a href="/video/dislikes">Нелюбимые</a></th>
+            <th><a href="/video/measures">Метрики</a></th>
+            <th><a href="/logout">Выход</a></th>
+            {% else %}
+            <th><a href="/login">Вход</a></th>
+            <th><a href="/sign-up">Регистрация</a></th>
+            {% endif %}
         </tr>
     </table>
 </div>

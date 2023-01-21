@@ -15,6 +15,7 @@ numpy = "*"
 matplotlib = "*"
 nltk = "*"
 spacy = "*"
+psycopg2 = "*"
 
 [dev-packages]
 

@@ -1,13 +1,21 @@
-{% extends "base.html" %} {% block title %}Login{% endblock %} {% block content
-%}
-<div>
-    {% for video in videos %}
-    <table border=1 width="100%">
 
-        <tr>
-            <td><a href="{{video['url']}}">{{video['title']}}</a></td>
-            <td></td>
-            <td width=20%><b>{{video['blogger']}}</b></td>
+{% extends "base.html" %} {% block title %}Login{% endblock %} {% block content %}
+{% block filter %} {% endblock %}
+<div>
+    {% if header %}
+    <h2 align="center">
+        {{header}}
+    </h2>
+    {% endif %}
+
+    {% for video in videos %}
+    <table>
+
+        <tr align="center">
+            <th>
+                <a href="{{video['url']}}">{{video['title']}}</a></th>
+            <th>{{loop.index}}</th>
+            <th width=20%><b>{{video['blogger']}}</b></th>
 
         </tr>
         <tr>
@@ -15,19 +23,25 @@
 
             <td>{{video['release_date']}}</td>
 
-            <td><a href="/video/like/{{video['id']}}">Похожие</a></td>
+            <td align="center"><a href="/video/like/{{video['id']}}">Похожие</a></td>
 
         </tr>
 
         <tr>
             <td>
-                <b>{{(video['child_emotions'][:5] | string)[1:-1].replace("'", '')}}</b>
+                <b>{{(video['child_emotions_ru'] | string)[1:-1].replace("'", '')}}</b>
             </td>
             <td width="100px">{{((video['length'] | int / 60) | string).split('.')[0]}} минут</td>
-            <td>
+            <td align="center">
                 <form method="post" action="/video/reaction">
-                    <button type="submit" name="reaction" value="like">{{video['likes']}} &#128077;</button>
-                    <button type="submit" name="reaction" value="dislike">{{video['dislikes']}} &#128078;</button>
+                    <button class="top" style="width: 50%;" type="submit" name="reaction" value="like">
+                        {{video['likes']}}
+                        &#128077;
+                    </button>
+                    <button class="bottom" style="width: 50%" type="submit" name="reaction" value="dislike">
+                        {{video['dislikes']}}
+                        &#128078;
+                    </button>
                     <input hidden name="video" value="{{video['id']}}"/>
                 </form>
             </td>

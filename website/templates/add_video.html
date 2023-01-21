@@ -9,8 +9,11 @@
     <br><label>Ссылка<br><input required name="url"/></label>
     <br><label>Длина<br><input required name="length"/></label>
     <br><label>Дата выхода<br><input placeholder="2020-09-22" required name="release_date"/></label>
-
-    <div class="container">{% block content %} {% endblock %}</div>
+    <div class="container">
+        {% with with_reaction = True %}
+        {% from 'emotions.html' import content %}
+        {% endwith %}
+    </div>
 
     <button type="submit">Добавить</button>
 </form>

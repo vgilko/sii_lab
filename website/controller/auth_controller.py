@@ -3,6 +3,7 @@ from flask_login import login_user, current_user, login_required, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from website import db
+from website.controller.videos_controller import read_video
 from website.domain.models import User
 
 auth = Blueprint('auth', __name__)
@@ -26,6 +27,14 @@ def login():
             flash('Email does not exist.', category='error')
 
     return render_template("login.html", user=current_user)
+
+
+@auth.route('', methods=['GET'])
+def default():
+    if current_user:
+        return read_video()
+
+    return login()
 
 
 @auth.route('/logout')

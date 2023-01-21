@@ -1,5 +1,5 @@
-from sqlalchemy.orm import relationship
 from flask_login import UserMixin
+from sqlalchemy.orm import relationship
 
 from website import db
 
@@ -15,6 +15,7 @@ class Video(db.Model):
 
     likes = relationship('Likes')
     dislikes = relationship('Dislikes')
+    tags = relationship('Tag')
 
 
 class Tag(db.Model):
@@ -80,3 +81,12 @@ class Dislikes(db.Model):
         self.video = video
         self.user = user
 
+
+class SearchHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user = db.Column(db.Integer, db.ForeignKey('user.id'))
+    search = db.Column(db.String(2000))
+
+    def __init__(self, user, search):
+        self.user = user
+        self.search = search

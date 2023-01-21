@@ -1,13 +1,12 @@
-{% extends "add_video.html" %}
-
 {% block content %}
 <div style="padding:20px">
     <table>
+
+
+        {% if with_reaction %}
         <tr>
             Какие эмоции ты испытал?
         </tr>
-
-        {% if with_reaction %}
         <tr>
             <th>
                 <label><input type="radio" required name="reaction" value="like">&#128077;</label>
@@ -18,83 +17,119 @@
         </tr>
         {% endif %}
 
+        {% if is_filter %}
+        <p>Выберете эмоции, которые хотите испытать от просмотра видео</p>
         <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        {% endif %}
+        <tr>
+
+            {% for emotion in emotions['emoji'] %}
             <td>
-                😠<br>
-                <select id="anger" name="anger" multiple="multiple">
-                    <option value="hostility">Враждебность</option>
-                    <option value="hatred">Ненависть</option>
-                    <option value="disturbance">Возмущение</option>
-                    <option value="jealousy">Ревность</option>
-                    <option value="disrespect">Неуважение</option>
-                    <option value="insurrection">Восстание</option>
+                {{ emotions['emoji'][emotion] }}<br>
+                <select id="{{ emotion }}" name="{{ emotion }}" multiple="multiple">
+                    {% for child_emotion in emotions['parent'][emotion] %}
+                    {% set translate = emotions['translate'] %}
+
+                    {% if child_emotion in selected_emotions %}
+                    <option value="{{ child_emotion }} selected">
+                        {{ translate[child_emotion] }}
+                    </option>
+                    {% else %}
+                    <option value="{{ child_emotion }}">
+                        {{ translate[child_emotion] }}
+                    </option>
+                    {% endif %}
+
+                    {% endfor %}
                 </select>
             </td>
-
-            <td>
-                😢<br>
-                <select id="sadness" name="sadness" multiple="multiple">
-                    <option value="pain">Боль</option>
-                    <option value="insult">Обида</option>
-                    <option value="regret">Сожаление</option>
-                    <option value="guilt">Вина</option>
-                    <option value="grief">Горе</option>
-                    <option value="feebleness">Беспомощность</option>
-                </select>
-            </td>
-
-            <td>
-                😲<br>
-                <select id="astonishment" name="astonishment" multiple="multiple">
-                    <option value="shock">Шок</option>
-                    <option value="confusion">Растерянность</option>
-                    <option value="stricken">Пораженный</option>
-                    <option value="reverent">Благоговейный</option>
-                    <option value="motivated">Мотивированный</option>
-                    <option value="excited">Взволнованный</option>
-                </select>
-            </td>
-
-
+            {% endfor %}
         </tr>
 
-        <tr>
-            <td>
-                😜<br>
-                <select id="joy" name="joy" multiple="multiple">
-                    <option value="jubilation">Ликование</option>
-                    <option value="euphoria">Эйфория</option>
-                    <option value="rapture">Восхищение</option>
-                    <option value="charm">Очарование</option>
-                    <option value="triumph">Триумф</option>
-                    <option value="holiday">Праздник</option>
-                </select>
-            </td>
+        <!--        <tr>-->
+        <!--            <td>-->
+        <!--                😠<br>-->
+        <!--                <select id="anger" name="anger" multiple="multiple">-->
+        <!--                    <option value="hostility">Враждебность</option>-->
+        <!--                    <option value="hatred">Ненависть</option>-->
+        <!--                    <option value="disturbance">Возмущение</option>-->
+        <!--                    <option value="jealousy">Ревность</option>-->
+        <!--                    <option value="disrespect">Неуважение</option>-->
+        <!--                    <option value="insurrection">Восстание</option>-->
+        <!--                </select>-->
+        <!--            </td>-->
 
-            <td>
-                😍<br>
-                <select id="love" name="love" multiple="multiple">
-                    <option value="sympathy">Симпатия</option>
-                    <option value="romance">Романтика</option>
-                    <option value="recklessness">Безрассудство</option>
-                    <option value="concupiscent">Вожделение</option>
-                    <option value="compassion">Сострадание</option>
-                    <option value="care">Забота</option>
-                </select>
-            </td>
+        <!--            <td>-->
+        <!--                😢<br>-->
+        <!--                <select id="sadness" name="sadness" multiple="multiple">-->
+        <!--                    <option value="pain">Боль</option>-->
+        <!--                    <option value="insult">Обида</option>-->
+        <!--                    <option value="regret">Сожаление</option>-->
+        <!--                    <option value="guilt">Вина</option>-->
+        <!--                    <option value="grief">Горе</option>-->
+        <!--                    <option value="feebleness">Беспомощность</option>-->
+        <!--                </select>-->
+        <!--            </td>-->
 
-            <td>
-                😱<br>
-                <select id="fear" name="fear" multiple="multiple">
-                    <option value="defencelessness">Беззащитность</option>
-                    <option value="fearfulness">Напуганность</option>
-                    <option value="anxiety">Тревожность</option>
-                    <option value="concern">Обеспокоенность</option>
-                    <option value="dread">Боязнь</option>
-                    <option value="torpor">Оцепенение</option>
-                </select>
-            </td>
-        </tr>
+        <!--            <td>-->
+        <!--                😲<br>-->
+        <!--                <select id="astonishment" name="astonishment" multiple="multiple">-->
+        <!--                    <option value="shock">Шок</option>-->
+        <!--                    <option value="confusion">Растерянность</option>-->
+        <!--                    <option value="stricken">Пораженный</option>-->
+        <!--                    <option value="reverent">Благоговейный</option>-->
+        <!--                    <option value="motivated">Мотивированный</option>-->
+        <!--                    <option value="excited">Взволнованный</option>-->
+        <!--                </select>-->
+        <!--            </td>-->
+
+
+        <!--        </tr>-->
+
+        <!--        <tr>-->
+        <!--            <td>-->
+        <!--                😜<br>-->
+        <!--                <select id="joy" name="joy" multiple="multiple">-->
+        <!--                    <option value="jubilation">Ликование</option>-->
+        <!--                    <option value="euphoria">Эйфория</option>-->
+        <!--                    <option value="rapture">Восхищение</option>-->
+        <!--                    <option value="charm">Очарование</option>-->
+        <!--                    <option value="triumph">Триумф</option>-->
+        <!--                    <option value="holiday">Праздник</option>-->
+        <!--                </select>-->
+        <!--            </td>-->
+
+        <!--            <td>-->
+        <!--                😍<br>-->
+        <!--                <select id="love" name="love" multiple="multiple">-->
+        <!--                    <option value="sympathy">Симпатия</option>-->
+        <!--                    <option value="romance">Романтика</option>-->
+        <!--                    <option value="recklessness">Безрассудство</option>-->
+        <!--                    <option value="concupiscent">Вожделение</option>-->
+        <!--                    <option value="compassion">Сострадание</option>-->
+        <!--                    <option value="care">Забота</option>-->
+        <!--                </select>-->
+        <!--            </td>-->
+
+        <!--            <td>-->
+        <!--                😱<br>-->
+        <!--                <select id="fear" name="fear" multiple="multiple">-->
+        <!--                    <option value="defencelessness">Беззащитность</option>-->
+        <!--                    <option value="fearfulness">Напуганность</option>-->
+        <!--                    <option value="anxiety">Тревожность</option>-->
+        <!--                    <option value="concern">Обеспокоенность</option>-->
+        <!--                    <option value="dread">Боязнь</option>-->
+        <!--                    <option value="torpor">Оцепенение</option>-->
+        <!--                </select>-->
+        <!--            </td>-->
+        <!--        </tr>-->
     </table>
 
     {% if with_control_button %}
@@ -102,5 +137,4 @@
     {% endif %}
 
 </div>
-
 {% endblock %}
